@@ -15,7 +15,6 @@ class StudentController extends Controller
         return new StudentResource($students, 'Success', 'List of students');
     }
 
-
     public function show(string $id)
     {
         $student = Student::find($id);
@@ -26,13 +25,11 @@ class StudentController extends Controller
         }
     }
 
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nim' => 'required',
             'name' => 'required',
-            'email' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -42,7 +39,6 @@ class StudentController extends Controller
         $student = Student::create($request->all());
         return new StudentResource($student, 'Success', 'Student created successfully');
     }
-
 
     public function update(Request $request, string $id)
     {
@@ -66,7 +62,6 @@ class StudentController extends Controller
 
         return new StudentResource($student, 'Success', 'Student updated successfully');
     }
-
 
     public function destroy(string $id)
     {
