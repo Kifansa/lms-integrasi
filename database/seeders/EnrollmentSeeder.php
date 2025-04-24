@@ -9,7 +9,6 @@ class EnrollmentSeeder extends Seeder
 {
     public function run()
     {
-        
         Enrollment::factory(10)->create();
     }
 }
