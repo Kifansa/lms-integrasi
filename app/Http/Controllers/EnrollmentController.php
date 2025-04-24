@@ -2,77 +2,77 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EnrollmentResource;
 use Illuminate\Http\Request;
 use App\Models\Enrollment;
+use Illuminate\Support\Facades\Validator;
 
 class EnrollmentController extends Controller
 {
-    
     public function index()
     {
         $enrollments = Enrollment::with(['student', 'course'])->get();
-        return response()->json($enrollments);
+        return new EnrollmentResource($enrollments, 'Success', 'List of enrollments');
     }
 
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,id',
+            'course_id' => 'required|exists:courses,id',
+        ]);
 
-    public function show($id)
+        if ($validator->fails()) {
+            return new EnrollmentResource(null, 'Failed', $validator->errors());
+        }
+
+        $enrollment = Enrollment::create($request->all());
+        return new EnrollmentResource($enrollment, 'Success', 'Enrollment created successfully');
+    }
+
+    public function show(string $id)
     {
         $enrollment = Enrollment::with(['student', 'course'])->find($id);
 
         if ($enrollment) {
-            return response()->json($enrollment);
+            return new EnrollmentResource($enrollment, 'Success', 'Enrollment found');
+        } else {
+            return new EnrollmentResource(null, 'Failed', 'Enrollment not found');
         }
-
-        return response()->json(['message' => 'Pendaftaran tidak ditemukan'], 404);
     }
 
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'course_id' => 'required|exists:courses,id',
-        ]);
-
-        $enrollment = Enrollment::create([
-            'student_id' => $request->student_id,
-            'course_id' => $request->course_id,
-        ]);
-
-        return response()->json(['message' => 'Pendaftaran berhasil dibuat', 'enrollment' => $enrollment], 201);
-    }
-
-
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $enrollment = Enrollment::find($id);
 
         if (!$enrollment) {
-            return response()->json(['message' => 'Pendaftaran tidak ditemukan'], 404);
+            return new EnrollmentResource(null, 'Failed', 'Enrollment not found');
         }
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'student_id' => 'required|exists:students,id',
             'course_id' => 'required|exists:courses,id',
         ]);
 
-        $enrollment->student_id = $request->student_id;
-        $enrollment->course_id = $request->course_id;
-        $enrollment->save();
+        if ($validator->fails()) {
+            return new EnrollmentResource(null, 'Failed', $validator->errors());
+        }
 
-        return response()->json(['message' => 'Pendaftaran berhasil diperbarui', 'enrollment' => $enrollment]);
+        $enrollment->update($request->all());
+
+        return new EnrollmentResource($enrollment, 'Success', 'Enrollment updated successfully');
     }
 
-    public function destroy($id)
+    public function destroy(string $id)
     {
         $enrollment = Enrollment::find($id);
 
         if (!$enrollment) {
-            return response()->json(['message' => 'Pendaftaran tidak ditemukan'], 404);
+            return new EnrollmentResource(null, 'Failed', 'Enrollment not found');
         }
 
         $enrollment->delete();
 
-        return response()->json(['message' => 'Pendaftaran berhasil dihapus']);
+        return new EnrollmentResource(null, 'Success', 'Enrollment deleted successfully');
     }
 }

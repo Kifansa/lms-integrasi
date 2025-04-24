@@ -2,77 +2,82 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\StudentResource;
 use Illuminate\Http\Request;
 use App\Models\Student;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
     public function index()
     {
         $students = Student::all();
-        return response()->json($students);
+        return new StudentResource($students, 'Success', 'List of students');
     }
 
-    public function show($id)
+
+    public function show(string $id)
     {
         $student = Student::find($id);
-
         if ($student) {
-            return response()->json($student);
+            return new StudentResource($student, 'Success', 'Student found');
+        } else {
+            return new StudentResource(null, 'Failed', 'Student not found');
         }
-
-        return response()->json(['message' => 'Mahasiswa tidak ditemukan'], 404);
     }
+
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nim' => 'required|string|max:255|unique:students',
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students',
+        $validator = Validator::make($request->all(), [
+            'nim' => 'required',
+            'name' => 'required',
+            'email' => 'required',
         ]);
 
-        $student = new Student();
-        $student->nim = $request->nim;
-        $student->name = $request->name;
-        $student->email = $request->email;
-        $student->save();
-
-        return response()->json(['message' => 'Mahasiswa berhasil dibuat', 'student' => $student], 201);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $student = Student::find($id);
-
-        if (!$student) {
-            return response()->json(['message' => 'Mahasiswa tidak ditemukan'], 404);
+        if ($validator->fails()) {
+            return new StudentResource(null, 'Failed', $validator->errors());
         }
 
-        $request->validate([
-            'nim' => 'required|string|max:255|unique:students,nim,' . $student->id,
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students,email,' . $student->id,
-        ]);
-
-        $student->nim = $request->nim;
-        $student->name = $request->name;
-        $student->email = $request->email;
-        $student->save();
-
-        return response()->json(['message' => 'Data mahasiswa berhasil diperbarui', 'student' => $student]);
+        $student = Student::create($request->all());
+        return new StudentResource($student, 'Success', 'Student created successfully');
     }
 
-    public function destroy($id)
+
+    public function update(Request $request, string $id)
     {
         $student = Student::find($id);
 
         if (!$student) {
-            return response()->json(['message' => 'Mahasiswa tidak ditemukan'], 404);
+            return new StudentResource(null, 'Failed', 'Student not found');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nim' => 'required',
+            'name' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return new StudentResource(null, 'Failed', $validator->errors());
+        }
+
+        $student->update($request->all());
+
+        return new StudentResource($student, 'Success', 'Student updated successfully');
+    }
+
+
+    public function destroy(string $id)
+    {
+        $student = Student::find($id);
+
+        if (!$student) {
+            return new StudentResource(null, 'Failed', 'Student not found');
         }
 
         $student->delete();
 
-        return response()->json(['message' => 'Mahasiswa berhasil dihapus']);
+        return new StudentResource(null, 'Success', 'Student deleted successfully');
     }
 }
