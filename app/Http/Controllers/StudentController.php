@@ -6,6 +6,7 @@ use App\Http\Resources\StudentResource;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Enrollment;  
 
 class StudentController extends Controller
 {
@@ -18,8 +19,14 @@ class StudentController extends Controller
     public function show(string $id)
     {
         $student = Student::find($id);
+
+        $enrollments = Enrollment::where('student_id', $id)->with('course')->get();
+
         if ($student) {
-            return new StudentResource($student, 'Success', 'Student found');
+            return new StudentResource([
+                'student' => $student,
+                'enrollments' => $enrollments
+            ], 'Success', 'Student found');
         } else {
             return new StudentResource(null, 'Failed', 'Student not found');
         }
