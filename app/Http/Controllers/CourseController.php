@@ -2,73 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CourseResource;
 use Illuminate\Http\Request;
 use App\Models\Course;
+use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
     public function index()
     {
         $courses = Course::all();
-        return response()->json($courses);
-    }
-
-    public function show($id)
-    {
-        $course = Course::find($id);
-
-        if ($course) {
-            return response()->json($course);
-        }
-
-        return response()->json(['message' => 'Kursus tidak ditemukan'], 404);
+        return new CourseResource($courses, 'Success', 'List of courses');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+        $validator = Validator::make($request->all(), [
+            'title' => 'required',
+            'description' => 'required',
         ]);
 
-        $course = new Course();
-        $course->title = $request->title;
-        $course->description = $request->description;
-        $course->save();
-
-        return response()->json(['message' => 'Kursus berhasil dibuat', 'course' => $course], 201);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $course = Course::find($id);
-
-        if (!$course) {
-            return response()->json(['message' => 'Kursus tidak ditemukan'], 404);
+        if ($validator->fails()) {
+            return new CourseResource(null, 'Failed', $validator->errors());
         }
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
-
-        $course->title = $request->title;
-        $course->description = $request->description;
-        $course->save();
-
-        return response()->json(['message' => 'Kursus berhasil diperbarui', 'course' => $course]);
+        $course = Course::create($request->all());
+        return new CourseResource($course, 'Success', 'Course created successfully');
     }
 
-    public function destroy($id)
+    public function show(string $id)
+    {
+        $course = Course::find($id);
+        if ($course) {
+            return new CourseResource($course, 'Success', 'Course found');
+        } else {
+            return new CourseResource(null, 'Failed', 'Course not found');
+        }
+    }
+
+    public function update(Request $request, string $id)
     {
         $course = Course::find($id);
 
         if (!$course) {
-            return response()->json(['message' => 'Kursus tidak ditemukan'], 404);
+            return new CourseResource(null, 'Failed', 'Course not found');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required',
+            'description' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return new CourseResource(null, 'Failed', $validator->errors());
+        }
+
+        $course->update($request->all());
+
+        return new CourseResource($course, 'Success', 'Course updated successfully');
+    }
+
+    public function destroy(string $id)
+    {
+        $course = Course::find($id);
+
+        if (!$course) {
+            return new CourseResource(null, 'Failed', 'Course not found');
         }
 
         $course->delete();
 
-        return response()->json(['message' => 'Kursus berhasil dihapus']);
+        return new CourseResource(null, 'Success', 'Course deleted successfully');
     }
 }
