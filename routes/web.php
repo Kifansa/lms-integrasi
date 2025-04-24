@@ -4,11 +4,22 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EnrollmentController;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 43540afa8babee2acbed192eac8efb9347232b89
 
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('/enrollments', [EnrollmentController::class, 'index']);
+Route::get('/enrollments/{id}', [EnrollmentController::class, 'show']);
+Route::post('/enrollments', [EnrollmentController::class, 'store']);
+Route::put('/enrollments/{id}', [EnrollmentController::class, 'update']);
+Route::delete('/enrollments/{id}', [EnrollmentController::class, 'destroy']);
 
 Route::get('/students', [StudentController::class, 'index']);
 Route::get('/students/{id}', [StudentController::class, 'show']);
