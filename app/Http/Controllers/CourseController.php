@@ -3,30 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CourseResource;
-use Illuminate\Http\Request;
 use App\Models\Course;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
-
     public function index()
     {
-        $courses = Course::all();
+        $courses = Course::all(); 
         return new CourseResource($courses, 'Success', 'List of courses');
     }
-
 
     public function show(string $id)
     {
         $course = Course::find($id);
+
         if ($course) {
-            return new CourseResource($course, 'Success', 'Course found');
+            $students = $course->students;
+
+            return new CourseResource([
+                'course' => $course,
+                'students' => $students,
+            ], 'Success', 'Course found');
         } else {
             return new CourseResource(null, 'Failed', 'Course not found');
         }
     }
-
 
     public function store(Request $request)
     {
@@ -42,7 +45,6 @@ class CourseController extends Controller
         $course = Course::create($request->all());
         return new CourseResource($course, 'Success', 'Course created successfully');
     }
-
 
     public function update(Request $request, string $id)
     {
@@ -65,7 +67,6 @@ class CourseController extends Controller
 
         return new CourseResource($course, 'Success', 'Course updated successfully');
     }
-
 
     public function destroy(string $id)
     {
