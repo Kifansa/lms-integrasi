@@ -6,6 +6,7 @@ use App\Http\Resources\StudentResource;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Enrollment;
 
 class StudentController extends Controller
 {
@@ -15,24 +16,28 @@ class StudentController extends Controller
         return new StudentResource($students, 'Success', 'List of students');
     }
 
-
     public function show(string $id)
     {
         $student = Student::find($id);
+
+        $enrollments = Enrollment::where('student_id', $id)->with('course')->get();
+
         if ($student) {
-            return new StudentResource($student, 'Success', 'Student found');
+            return new StudentResource([
+                'student' => $student,
+                'enrollments' => $enrollments
+            ], 'Success', 'Student found');
         } else {
             return new StudentResource(null, 'Failed', 'Student not found');
         }
     }
-
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nim' => 'required',
             'name' => 'required',
-            'email' => 'required',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
@@ -42,7 +47,6 @@ class StudentController extends Controller
         $student = Student::create($request->all());
         return new StudentResource($student, 'Success', 'Student created successfully');
     }
-
 
     public function update(Request $request, string $id)
     {
@@ -66,7 +70,6 @@ class StudentController extends Controller
 
         return new StudentResource($student, 'Success', 'Student updated successfully');
     }
-
 
     public function destroy(string $id)
     {
