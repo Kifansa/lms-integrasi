@@ -13,22 +13,22 @@ class CourseController extends Controller
 {
     public function index()
     {
-        // Mengambil semua course dan melakukan eager loading relasi student
+
         $courses = Course::all();
 
-        // Mengambil data student untuk setiap course
+
         $coursesWithStudents = [];
         foreach ($courses as $course) {
-            // Mendapatkan semua enrollment untuk course ini
+
             $enrollments = Enrollment::where('course_id', $course->id)->get();
 
-            // Mendapatkan student_ids dari enrollment
+
             $studentIds = $enrollments->pluck('student_id')->toArray();
 
-            // Mendapatkan data student
+
             $students = Student::whereIn('id', $studentIds)->get();
 
-            // Menambahkan course dengan students ke array
+
             $coursesWithStudents[] = [
                 'course' => $course,
                 'students' => $students
@@ -43,14 +43,14 @@ class CourseController extends Controller
         $course = Course::find($id);
 
         if ($course) {
-            // Mendapatkan semua enrollment untuk course ini
+
             $enrollments = Enrollment::where('course_id', $id)->get();
 
-            // Mendapatkan semua student yang mengambil course ini
+
             $studentIds = $enrollments->pluck('student_id')->toArray();
             $students = Student::whereIn('id', $studentIds)->get();
 
-            // Data detail untuk setiap student (bisa ditambahkan informasi tambahan jika perlu)
+
             $studentsDetail = [];
             foreach ($students as $student) {
                 $enrollment = $enrollments->where('student_id', $student->id)->first();
@@ -58,7 +58,7 @@ class CourseController extends Controller
                     'student' => $student,
                     'enrollment_id' => $enrollment ? $enrollment->id : null,
                     'enrollment_date' => $enrollment ? $enrollment->created_at : null,
-                    // Tambahkan data enrollment lain jika diperlukan
+
                 ];
             }
 
@@ -85,14 +85,14 @@ class CourseController extends Controller
 
         $course = Course::create($request->all());
 
-        // Jika ada student_ids dalam request, tambahkan mereka ke course ini
+
         $enrolledStudents = [];
         if ($request->has('student_ids') && is_array($request->student_ids)) {
             foreach ($request->student_ids as $studentId) {
                 $student = Student::find($studentId);
 
                 if ($student) {
-                    // Buat enrollment untuk student ini
+
                     Enrollment::create([
                         'student_id' => $student->id,
                         'course_id' => $course->id
@@ -129,17 +129,17 @@ class CourseController extends Controller
 
         $course->update($request->all());
 
-        // Mendapatkan semua enrollment yang ada untuk course ini
+
         $existingEnrollments = Enrollment::where('course_id', $id)->get();
         $existingStudentIds = $existingEnrollments->pluck('student_id')->toArray();
 
-        // Update enrollment jika ada student_ids dalam request
+
         $updatedStudents = [];
         $addedStudents = [];
         $removedStudents = [];
 
         if ($request->has('student_ids') && is_array($request->student_ids)) {
-            // Hapus enrollment yang tidak ada di request baru
+
             foreach ($existingEnrollments as $enrollment) {
                 if (!in_array($enrollment->student_id, $request->student_ids)) {
                     $student = Student::find($enrollment->student_id);
@@ -150,7 +150,7 @@ class CourseController extends Controller
                 }
             }
 
-            // Tambah enrollment baru
+
             foreach ($request->student_ids as $studentId) {
                 if (!in_array($studentId, $existingStudentIds)) {
                     $student = Student::find($studentId);
@@ -170,7 +170,7 @@ class CourseController extends Controller
             }
         }
 
-        // Dapatkan semua student yang terdaftar setelah update
+
         $enrollments = Enrollment::where('course_id', $id)->get();
         $studentIds = $enrollments->pluck('student_id')->toArray();
         $currentStudents = Student::whereIn('id', $studentIds)->get();
@@ -193,12 +193,12 @@ class CourseController extends Controller
             return new CourseResource(null, 'Failed', 'Course not found');
         }
 
-        // Dapatkan semua student yang terdaftar sebelum menghapus course
+
         $enrollments = Enrollment::where('course_id', $id)->get();
         $studentIds = $enrollments->pluck('student_id')->toArray();
         $enrolledStudents = Student::whereIn('id', $studentIds)->get();
 
-        // Data detail student yang akan kehilangan enrollment
+
         $affectedStudentsDetail = [];
         foreach ($enrolledStudents as $student) {
             $enrollment = $enrollments->where('student_id', $student->id)->first();
@@ -210,7 +210,7 @@ class CourseController extends Controller
             ];
         }
 
-        // Hapus semua enrollment terkait course ini
+
         foreach ($enrollments as $enrollment) {
             $enrollment->delete();
         }
