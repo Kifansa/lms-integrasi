@@ -3,17 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CourseResource;
-use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\Student;
 use App\Models\Enrollment;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
     public function index()
     {
-
         $courses = Course::all();
 
 
@@ -36,6 +35,9 @@ class CourseController extends Controller
         }
 
         return new CourseResource($coursesWithStudents, 'Success', 'List of courses with enrolled students');
+    }
+        $courses = Course::all(); 
+        return new CourseResource($courses, 'Success', 'List of courses');
     }
 
     public function show(string $id)
@@ -67,6 +69,13 @@ class CourseController extends Controller
                 'students' => $studentsDetail,
                 'total_students' => count($students)
             ], 'Success', 'Course found with enrolled students');
+          
+            $students = $course->students;
+
+            return new CourseResource([
+                'course' => $course,
+                'students' => $students,
+            ], 'Success', 'Course found');
         } else {
             return new CourseResource(null, 'Failed', 'Course not found');
         }
@@ -84,7 +93,6 @@ class CourseController extends Controller
         }
 
         $course = Course::create($request->all());
-
 
         $enrolledStudents = [];
         if ($request->has('student_ids') && is_array($request->student_ids)) {
@@ -169,7 +177,6 @@ class CourseController extends Controller
                 }
             }
         }
-
 
         $enrollments = Enrollment::where('course_id', $id)->get();
         $studentIds = $enrollments->pluck('student_id')->toArray();
