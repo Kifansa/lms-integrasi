@@ -9,11 +9,24 @@ use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
+
     public function index()
     {
         $courses = Course::all();
         return new CourseResource($courses, 'Success', 'List of courses');
     }
+
+
+    public function show(string $id)
+    {
+        $course = Course::find($id);
+        if ($course) {
+            return new CourseResource($course, 'Success', 'Course found');
+        } else {
+            return new CourseResource(null, 'Failed', 'Course not found');
+        }
+    }
+
 
     public function store(Request $request)
     {
@@ -30,15 +43,6 @@ class CourseController extends Controller
         return new CourseResource($course, 'Success', 'Course created successfully');
     }
 
-    public function show(string $id)
-    {
-        $course = Course::find($id);
-        if ($course) {
-            return new CourseResource($course, 'Success', 'Course found');
-        } else {
-            return new CourseResource(null, 'Failed', 'Course not found');
-        }
-    }
 
     public function update(Request $request, string $id)
     {
@@ -61,6 +65,7 @@ class CourseController extends Controller
 
         return new CourseResource($course, 'Success', 'Course updated successfully');
     }
+
 
     public function destroy(string $id)
     {

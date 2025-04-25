@@ -5,15 +5,31 @@ namespace App\Http\Controllers;
 use App\Http\Resources\EnrollmentResource;
 use Illuminate\Http\Request;
 use App\Models\Enrollment;
+use App\Models\Student;
+use App\Models\Course;
 use Illuminate\Support\Facades\Validator;
 
 class EnrollmentController extends Controller
 {
+
     public function index()
     {
         $enrollments = Enrollment::with(['student', 'course'])->get();
         return new EnrollmentResource($enrollments, 'Success', 'List of enrollments');
     }
+
+
+    public function show(string $id)
+    {
+        $enrollment = Enrollment::with(['student', 'course'])->find($id);
+
+        if ($enrollment) {
+            return new EnrollmentResource($enrollment, 'Success', 'Enrollment found');
+        } else {
+            return new EnrollmentResource(null, 'Failed', 'Enrollment not found');
+        }
+    }
+
 
     public function store(Request $request)
     {
@@ -30,16 +46,6 @@ class EnrollmentController extends Controller
         return new EnrollmentResource($enrollment, 'Success', 'Enrollment created successfully');
     }
 
-    public function show(string $id)
-    {
-        $enrollment = Enrollment::with(['student', 'course'])->find($id);
-
-        if ($enrollment) {
-            return new EnrollmentResource($enrollment, 'Success', 'Enrollment found');
-        } else {
-            return new EnrollmentResource(null, 'Failed', 'Enrollment not found');
-        }
-    }
 
     public function update(Request $request, string $id)
     {
@@ -62,6 +68,7 @@ class EnrollmentController extends Controller
 
         return new EnrollmentResource($enrollment, 'Success', 'Enrollment updated successfully');
     }
+
 
     public function destroy(string $id)
     {
