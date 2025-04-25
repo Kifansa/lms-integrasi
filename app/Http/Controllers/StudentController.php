@@ -6,7 +6,7 @@ use App\Http\Resources\StudentResource;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Enrollment;  
+use App\Models\Enrollment;
 
 class StudentController extends Controller
 {
@@ -37,6 +37,7 @@ class StudentController extends Controller
         $validator = Validator::make($request->all(), [
             'nim' => 'required',
             'name' => 'required',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
